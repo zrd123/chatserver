@@ -17,12 +17,14 @@
   "C_Cpp_Runner.includePaths": [
     "${workspaceFolder}/include",
     "${workspaceFolder}/thirdparty",
-    "${workspaceFolder}/include/server/db"
+    "${workspaceFolder}/include/server/db",
+    "${workspaceFolder}/include/server/model"
   ],
   "C_Cpp_Runner.includeSearch": [
     "${workspaceFolder}/include",
     "${workspaceFolder}/thirdparty",
     "${workspaceFolder}/include/server/db",
+    "${workspaceFolder}/include/server/model",
     "*",
     "**/*"
   ],
@@ -37,6 +39,7 @@
   "files.associations": {
     "*.json": "jsonc",
     "functional": "cpp",
-    "csignal": "cpp"
+    "csignal": "cpp",
+    "vector": "cpp"
   }
 }

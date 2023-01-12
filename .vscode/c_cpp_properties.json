@@ -6,6 +6,7 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/include/server/db",
+                "${workspaceFolder}/include/server/model",
                 "${workspaceFolder}/thirdparty"
             ],
             "defines": [],
