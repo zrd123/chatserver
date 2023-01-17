@@ -18,10 +18,17 @@ ChatService *ChatService::instance()
 //注册消息以及对应的Handler回调操作
 ChatService::ChatService()
 {
+    //用户基本业务管理相关事件处理回调注册
     _msgHandlerMap.insert({LOGIN_MSG, std::bind(&ChatService::login, this, _1, _2, _3)});
+    _msgHandlerMap.insert({LOGINOUT_MSG, std::bind(&ChatService::loginout, this, _1, _2, _3)});
     _msgHandlerMap.insert({REG_MSG, std::bind(&ChatService::reg, this, _1, _2, _3)});
     _msgHandlerMap.insert({ONE_CHAT_MSG, std::bind(&ChatService::oneChat, this, _1, _2, _3)});
     _msgHandlerMap.insert({ADD_FRIEND_MSG, std::bind(&ChatService::addFriend, this, _1, _2, _3)});
+
+    //群组业务管理相关事件处理回调注册
+    _msgHandlerMap.insert({CREATE_GROUP_MSG, std::bind(&ChatService::createGroup, this, _1, _2, _3)});
+    _msgHandlerMap.insert({ADD_GROUP_MSG, std::bind(&ChatService::addGroup, this, _1, _2, _3)});
+    _msgHandlerMap.insert({GROUP_CHAT_MSG, std::bind(&ChatService::groupChat, this, _1, _2, _3)});
 }
 
 //服务器异常,处理方法
@@ -93,6 +100,30 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
                 }
                 response["friends"] = friendVec;
             }
+             // 查询用户的群组信息
+            vector<Group> groupuserVec = _groupModel.queryGroups(id);
+            if (!groupuserVec.empty()){
+                // group:[{groupid:[xxx, xxx, xxx, xxx]}]
+                vector<string> groupV;
+                for (Group &group : groupuserVec){
+                    json grpjson;
+                    grpjson["id"] = group.getId();
+                    grpjson["groupname"] = group.getName();
+                    grpjson["groupdesc"] = group.getDesc();
+                    vector<string> userV;
+                    for (GroupUser &user : group.getUsers()){
+                        json js;
+                        js["id"] = user.getId();
+                        js["name"] = user.getName();
+                        js["state"] = user.getState();
+                        js["role"] = user.getRole();
+                        userV.push_back(js.dump());
+                    }
+                    grpjson["users"] = userV;
+                    groupV.push_back(grpjson.dump());
+                }
+                response["groups"] = groupV;
+            }
             //查询是否有离线消息
             vector<string> vec = _offlineMsgModel.query(id);
             if(!vec.empty()){
@@ -141,6 +172,25 @@ void ChatService::reg(const TcpConnectionPtr &conn, json &js, Timestamp time)
     }
 }
 
+// 处理注销业务
+void ChatService::loginout(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    int userid = js["id"].get<int>();
+
+    {
+        lock_guard<mutex> lock(_connMutex);
+        auto it = _userConnMap.find(userid);
+        if (it != _userConnMap.end())
+        {
+            _userConnMap.erase(it);
+        }
+    }
+
+    // 更新用户的状态信息
+    User user(userid, "", "", "offline");
+    _userModel.updateState(user);
+}
+
 //处理客户端异常退出
 void ChatService::clientCloseException(const TcpConnectionPtr &conn)
 {
@@ -166,8 +216,7 @@ void ChatService::clientCloseException(const TcpConnectionPtr &conn)
 //一对一聊天业务
 void ChatService::oneChat(const TcpConnectionPtr &conn, json &js, Timestamp time)
 {
-    int toId = js["to"].get<int>();
-
+    int toId = js["toid"].get<int>();
     {
         lock_guard<mutex> lock(_connMutex);
         auto it = _userConnMap.find(toId);
@@ -190,7 +239,7 @@ void ChatService::addFriend(const TcpConnectionPtr &conn, json &js, Timestamp ti
 
     //存储好友信息
     _friendModel.insert(userid, friendid);
-    conn->send("add friend successfully!");
+    //conn->send("add friend successfully!");
 }
 
 //创建群组业务
@@ -206,7 +255,7 @@ void ChatService::createGroup(const TcpConnectionPtr &conn, json &js, Timestamp 
         //存储群创建人信息
         _groupModel.addGroup(userid, group.getId(),"creator");
     }
-    conn->send("create Group successfully!");
+    //conn->send("create Group successfully!");
 }
 
 //加入群组业务
@@ -215,7 +264,7 @@ void ChatService::addGroup(const TcpConnectionPtr &conn, json &js, Timestamp tim
     int userid = js["id"].get<int>();
     int groupid = js["groupid"].get<int>();
     _groupModel.addGroup(userid, groupid, "normal");
-    conn->send("add Group successfully!");
+    // conn->send("add Group successfully!");
 }
 
 //群组聊天业务
@@ -238,9 +287,3 @@ void ChatService::groupChat(const TcpConnectionPtr &conn, json &js, Timestamp ti
         }
     }
 }
-
-// {"msgid":1,"id":23,"password":"123456"}
-// {"msgid":1,"id":15,"password":"666666"}
-// {"msgid":5,"id":23,"from":"zhang san","to":15,"msg":"hello22222!"}
-// {"msgid":5,"id":15,"from":"li si","to":23,"msg":"挺好的?"}
-// {"msgid":6,"id":23,"friendid":15}

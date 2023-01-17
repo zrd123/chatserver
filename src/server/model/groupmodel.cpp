@@ -32,7 +32,7 @@ void GroupModel::addGroup(int userid, int groupid, string role)
 }
 
 //查询用户所在群组信息
-vector<Group> GroupModel::queryGroup(int userid)
+vector<Group> GroupModel::queryGroups(int userid)
 {
     /*
     先根据userid在groupuser表中查询出该用户所属的群组信息

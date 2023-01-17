@@ -1,28 +1,16 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "C/C++ Runner: Debug Session",
-      "type": "cppdbg",
-      "request": "launch",
-      "args": [
-        ""
-      ],
-      "stopAtEntry": false,
-      "cwd": "/usr/project/chat",
-      "environment": [],
-      "program": "/usr/project/chat/build/Debug/outDebug",
-      "internalConsoleOptions": "openOnSessionStart",
-      "MIMode": "gdb",
-      "miDebuggerPath": "/bin/gdb",
-      "externalConsole": false,
-      "setupCommands": [
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
         {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug",
+            "program": "${workspaceFolder}/<executable file>",
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
-      ]
-    }
-  ]
+    ]
 }
