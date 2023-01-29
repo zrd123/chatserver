@@ -15,7 +15,7 @@ using json = nlohmann::json;
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <semaphore.h>
+#include <semaphore.h>//linux 信号量
 #include <atomic>
 
 #include "group.hpp"
