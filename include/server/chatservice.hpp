@@ -5,6 +5,7 @@
 #include <muduo/net/TcpConnection.h>
 #include <functional>
 #include <mutex>
+#include "redis.hpp"
 #include "usermodel.hpp"
 #include "offlinemessagemodel.hpp"
 #include "friendmodel.hpp"
@@ -46,6 +47,8 @@ public:
     void reset();
     //处理客户端异常退出
     void clientCloseException(const TcpConnectionPtr &conn);
+    //从redis消息队列中获取订阅消息
+    void handleRedisSubscribeMessage(int userid, std::string msg);
 private:
     ChatService();
     //存储消息id和其对应的业务处理方法
@@ -62,6 +65,9 @@ private:
     OfflineMsgModel _offlineMsgModel;
     FriendModel _friendModel;
     GroupModel _groupModel;
+
+    //redis操作对象
+    Redis _redis;
 };
 
 #endif 
