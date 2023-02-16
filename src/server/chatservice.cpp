@@ -2,6 +2,7 @@
 #include "public.hpp"
 #include "user.hpp"
 
+#include <iostream>
 #include <map>
 #include <vector>
 #include <muduo/base/Logging.h>
@@ -30,8 +31,11 @@ ChatService::ChatService()
     _msgHandlerMap.insert({ADD_GROUP_MSG, std::bind(&ChatService::addGroup, this, _1, _2, _3)});
     _msgHandlerMap.insert({GROUP_CHAT_MSG, std::bind(&ChatService::groupChat, this, _1, _2, _3)});
 
+    if(!_redisPool.init(std::string("127.0.0.1"), 6379)){
+        std::cerr << "redis pool initialize failed!";
+    };
     //连接redis服务器
-    if(_redis.connect()){
+    if(_redis.connect(std::string("127.0.0.1"), 6379)){
         //设置上报消息的回调
         _redis.init_notify_handler(std::bind(&ChatService::handleRedisSubscribeMessage, this, _1, _2));
     }
@@ -109,7 +113,7 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
                 }
                 response["friends"] = friendVec;
             }
-             //查询用户的群组信息
+            //查询用户的群组信息
             vector<Group> groupuserVec = _groupModel.queryGroups(id);
             if (!groupuserVec.empty()){
                 //group:[{groupid:[xxx, xxx, xxx, xxx]}]
@@ -149,7 +153,7 @@ void ChatService::login(const TcpConnectionPtr &conn, json &js, Timestamp time)
         json response;
         response["msgid"] = LOGIN_MSG_ACK;
         response["errno"] = 1;
-        response["errnomsg"] = "用户不存在或密码错误";
+        response["errmsg"] = "用户不存在或密码错误";
         conn->send(response.dump());
     }
 }
@@ -244,8 +248,7 @@ void ChatService::oneChat(const TcpConnectionPtr &conn, json &js, Timestamp time
     }
 
     //查询toid是否在线
-    User user = _userModel.query(toId);
-    if(user.getState() == "online"){
+    if(_userModel.cacheQuery(toId) == "online" || _userModel.query(toId).getState() == "online"){
         _redis.publish(toId, js.dump());
         return;
     }
@@ -262,6 +265,7 @@ void ChatService::addFriend(const TcpConnectionPtr &conn, json &js, Timestamp ti
 
     //存储好友信息
     _friendModel.insert(userid, friendid);
+    _friendModel.insert(friendid, userid);
     //conn->send("add friend successfully!");
 }
 
@@ -306,8 +310,7 @@ void ChatService::groupChat(const TcpConnectionPtr &conn, json &js, Timestamp ti
         }
         else{
             //查询toid是否在线
-            User user = _userModel.query(id);
-            if(user.getState() == "online"){
+            if(_userModel.cacheQuery(id) == "online" || _userModel.query(id).getState() == "online"){
                 _redis.publish(id, js.dump());
             }
             else{

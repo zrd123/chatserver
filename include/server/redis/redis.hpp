@@ -6,14 +6,14 @@
 #include <functional>
 
 
-class Redis
+class RedisMQ
 {
 public:
-    Redis();
-    ~Redis();
+    RedisMQ();
+    ~RedisMQ();
 
     //连接redis服务器
-    bool connect();
+    bool connect(const std::string &ip, int port);
 
     //向redis指定的通道channel发布消息
     bool publish(int channel, std::string message);
@@ -31,6 +31,7 @@ public:
     void init_notify_handler(std::function<void(int, std::string)> fn);
 
 private:
+
     //hiredis同步上下文对象,负责publish消息
     redisContext *_publish_context;
 

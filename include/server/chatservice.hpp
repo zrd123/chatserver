@@ -6,6 +6,7 @@
 #include <functional>
 #include <mutex>
 #include "redis.hpp"
+#include "redisconnectionpool.hpp"
 #include "usermodel.hpp"
 #include "offlinemessagemodel.hpp"
 #include "friendmodel.hpp"
@@ -67,7 +68,8 @@ private:
     GroupModel _groupModel;
 
     //redis操作对象
-    Redis _redis;
+    RedisMQ _redis;
+    RedisConnectionPool _redisPool;
 };
 
 #endif 

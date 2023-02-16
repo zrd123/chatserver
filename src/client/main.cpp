@@ -84,6 +84,7 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
+
     // 初始化读写线程通信用的信号量
     sem_init(&rwsem, 0, 0);
 
@@ -154,8 +155,7 @@ int main(int argc, char **argv)
             string request = js.dump();
 
             int len = send(clientfd, request.c_str(), strlen(request.c_str()) + 1, 0);
-            if (len == -1)
-            {
+            if (len == -1){
                 cerr << "send reg msg error:" << request << endl;
             }
             
@@ -163,12 +163,16 @@ int main(int argc, char **argv)
         }
         break;
         case 3: // quit业务
+        {
             close(clientfd);
             sem_destroy(&rwsem);
             exit(0);
+        }
         default:
+        {
             cerr << "invalid input!" << endl;
             break;
+        }
         }
     }
 

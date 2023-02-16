@@ -1,5 +1,6 @@
 #include "usermodel.hpp"
 #include "db.h"
+#include "redisconnectionpool.hpp"
 #include <iostream>
 
 //User表的增加方法
@@ -35,6 +36,13 @@ User UserModel::query(int id)
                 user.setName(row[1]);
                 user.setPwd(row[2]);
                 user.setState(row[3]);
+
+                auto redis = RedisConnectionPool::Get();
+                RedisResult result;
+                sprintf(sql, "SET %d %s", user.getId(), user.getState());
+                redis.get()->execCommand(sql, result);
+                RedisConnectionPool::Back(redis);
+
                 mysql_free_result_nonblocking(res);
                 return user;
             }
@@ -43,6 +51,18 @@ User UserModel::query(int id)
     return User();
 }
 
+std::string UserModel::cacheQuery(int id)
+{
+    char sql[1024];
+    auto redis = RedisConnectionPool::Get();
+    RedisResult result;
+    sprintf(sql, "GET %d", id);
+    redis.get()->execCommand(sql, result);
+    RedisConnectionPool::Back(redis);
+    return result.strdata;
+}
+
+
 //更新用户状态信息
 bool UserModel::updateState(User user)
 {
@@ -50,9 +70,15 @@ bool UserModel::updateState(User user)
     sprintf(sql, "update user set state = '%s' where id = '%d'", user.getState().c_str(), user.getId());
     MySQL mysql;
     if(mysql.connect()){
+        auto redis = RedisConnectionPool::Get();
+        RedisResult result;
         if(mysql.update(sql)){
+            sprintf(sql, "SET %d %s", user.getId(), user.getState().c_str());
+            redis.get()->execCommand(sql, result);
+            RedisConnectionPool::Back(redis);
             return true;
         }
+        RedisConnectionPool::Back(redis);
     }
     return false;
 }
@@ -64,5 +90,10 @@ void UserModel::resetState()
     MySQL mysql;
     if(mysql.connect()){
         mysql.update(sql);
+        // auto redis = RedisConnectionPool::Get();
+        // RedisResult result;
+        // sprintf(sql, "flushall");
+        // redis.get()->execCommand(sql, result);
+        // RedisConnectionPool::Back(redis);
     }
 }

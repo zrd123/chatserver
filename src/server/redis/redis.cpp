@@ -1,32 +1,32 @@
 #include "redis.hpp"
 #include <iostream>
 
-Redis::Redis()
+RedisMQ::RedisMQ()
     :_publish_context(nullptr), _subscribe_context(nullptr)
 {
 
 }
 
-Redis::~Redis()
+RedisMQ::~RedisMQ()
 {
     if(_publish_context){
         redisFree(_publish_context);
-    }
+    } 
     if(_subscribe_context){
         redisFree(_subscribe_context);
     }
 }
 
 //连接redis服务器
-bool Redis::connect()
+bool RedisMQ::connect(const std::string &ip, int port)
 {
-    _publish_context = redisConnect("127.0.0.1", 6379);
+    _publish_context = redisConnect(ip.c_str(), port);
     if(nullptr == _publish_context){
         std::cerr << "connect redis failed!" << std::endl; 
         return false;
     }
     
-    _subscribe_context = redisConnect("127.0.0.1", 6379);
+    _subscribe_context = redisConnect(ip.c_str(), port);
     if(nullptr == _subscribe_context){
         std::cerr << "connect redis failed!" << std::endl;
         return false;
@@ -43,7 +43,7 @@ bool Redis::connect()
 }
 
 //向redis指定的通道channel发布消息
-bool Redis::publish(int channel, std::string message)
+bool RedisMQ::publish(int channel, std::string message)
 {
     redisReply *reply = static_cast<redisReply *>(
         redisCommand(_publish_context, "PUBLISH %d %s", channel, message.c_str()
@@ -57,7 +57,7 @@ bool Redis::publish(int channel, std::string message)
 }
 
 //向redis指定的通道subscribe订阅消息
-bool Redis::subscribe(int channel)
+bool RedisMQ::subscribe(int channel)
 {
     //SUBSCRIBE命令本身会造成线程的阻塞等待通道里面发生消息,这里只做订阅通道,不接受同消息
     //通道消息的接收专门在observer_channel_message函数中的独立线程中进行
@@ -79,7 +79,7 @@ bool Redis::subscribe(int channel)
 }
 
 //向redis指定的通道unsubscribe取消订阅消息
-bool Redis::unsubscribe(int channel)
+bool RedisMQ::unsubscribe(int channel)
 {
     if(REDIS_ERR == redisAppendCommand(this->_subscribe_context, "UNSUBSCRIBE %d", channel)){
         std::cerr << "unsubscribe command failed!"  << std::endl;
@@ -97,7 +97,7 @@ bool Redis::unsubscribe(int channel)
 }
 
 //在独立线程中接收订阅通道中的消息
-void Redis::observer_channel_message()
+void RedisMQ::observer_channel_message()
 {
     redisReply *reply = nullptr;
     while(REDIS_OK == redisGetReply(this->_subscribe_context, (void **)&reply)){
@@ -111,7 +111,7 @@ void Redis::observer_channel_message()
 }
 
 //初始化向业务层上报通道消息的回调对象
-void Redis::init_notify_handler(std::function<void(int, std::string)> fn)
+void RedisMQ::init_notify_handler(std::function<void(int, std::string)> fn)
 {
     this->_notify_message_handler = fn;
 }

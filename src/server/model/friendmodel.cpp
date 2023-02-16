@@ -24,7 +24,7 @@ vector<User> FriendModel::query(int userid)
     if(mysql.connect()){
         MYSQL_RES *res = mysql.query(sql);
         if(nullptr != res){
-            //把userid用户的所有离线消息放入vec中返回
+            //把userid用户的所有好友放入vec中返回
             MYSQL_ROW row;
             while((row = mysql_fetch_row(res)) != nullptr){
                 User user;

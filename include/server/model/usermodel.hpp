@@ -13,6 +13,9 @@ public:
     //根据用户哈号码查询用户信息
     User query(int id);
 
+    //从Redis查询用户的状态信息
+    std::string cacheQuery(int id);
+
     //更新用户状态信息
     bool updateState(User user);
 
