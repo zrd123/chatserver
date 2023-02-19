@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package chat_proto;
+
+enum Error{
+	NO_ERR = 0;			//没有错误
+	REG_ERR_1 = 1;		//未知注册错误
+	REG_ERR_2 = 2;		//注册失败
+	LOGIN_ERR_1 = 3;	//未知登陆错误
+	LOGIN_ERR_2 = 4;	//用户已经登陆
+	LOGIN_ERR_3 = 5;	//用户名或密码错误
+	CRE_GRP_ERR = 6;	//创建群组错误
+	UNKNOWN_ERR = 7;	//未知错误
+}
+
+enum MessageType{
+	UNKNOWN_MSG = 0;		//未知类型
+	LOAD_MAS = 1;			//加载信息请求	
+	LOAD_ACK = 2;			//加载信息响应
+	LOGIN_MSG = 3;			//登陆消息
+    LOGIN_MSG_ACK = 4;  	//登陆响应消息
+    REG_MSG = 5;       		//注册消息
+    REG_MSG_ACK = 6;    	//注册响应消息
+    ONE_CHAT_MSG = 7;   	//聊天消息
+    ADD_FRIEND_MSG = 8;		//添加好友消息
+	ADD_FRIEND_ACK = 9;		//添加好友响应消息
+    CREATE_GROUP_MSG = 10;	//创建群组消息
+	CREATE_GROUP_ACK = 11;	//创建群组响应消息
+    ADD_GROUP_MSG = 12;   	//加入群组消息
+	ADD_GROUP_ACK = 13;		//添加群组响应消息
+    GROUP_CHAT_MSG = 14;	//群聊天消息
+    LOGINOUT_MSG = 15;		//注销消息
+
+}
+
+message User{
+	uint32 id = 1;
+	bytes name = 2;
+	bytes status =3;
+}
+
+message GroupMember{
+	User user = 1;
+	optional bytes role = 2;
+}
+message Group{
+	uint32 id = 1;
+	bytes name = 2;
+	bytes description = 3;
+	repeated GroupMember members = 4;
+}
+
+message LoadResponse{
+	repeated User friend_list = 1;
+	repeated Group group_list = 2;
+}

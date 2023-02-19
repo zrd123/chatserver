@@ -21,7 +21,7 @@ bool UserModel::insert(User &user)
 }
 
 //根据用户哈号码查询用户信息
-User UserModel::query(int id)
+User UserModel::query(unsigned int id)
 {
     char sql[1024] = {0};
     sprintf(sql, "select * from user where id = %d", id);
@@ -51,7 +51,7 @@ User UserModel::query(int id)
     return User();
 }
 
-std::string UserModel::cacheQuery(int id)
+std::string UserModel::cacheQuery(unsigned int id)
 {
     char sql[1024];
     auto redis = RedisConnectionPool::Get();

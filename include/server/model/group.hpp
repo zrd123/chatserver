@@ -20,14 +20,13 @@ public:
     }
 
     void setId(int id) { this->id = id; }
-    void setName(string name) { this->name = name; }
-    void setDesc(string desc) { this->desc = desc; }
+    void setName(const string name) { this->name = name; }
+    void setDesc(const string desc) { this->desc = desc; }
 
-    int getId() { return this->id; }
-    string getName() { return this->name; }
-    string getDesc() { return this->desc; }
+    int getId() const { return this->id; }
+    const string getName() const { return this->name; }
+    const string getDesc() const { return this->desc; }
     vector<GroupUser> &getUsers(){ return this->users; }
-
 
 private:
     int id;

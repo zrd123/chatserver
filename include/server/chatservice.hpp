@@ -12,38 +12,41 @@
 #include "friendmodel.hpp"
 #include "groupmodel.hpp"
 #include "json.hpp"
+#include "protocol.hpp"
 
 using namespace std;
 using namespace muduo;
 using namespace muduo::net;
 using json = nlohmann::json;
 //处理消息回调事件的方法类型
-using MsgHandler = std::function<void (const TcpConnectionPtr &conn, json &js, Timestamp)>;
+using MsgHandler = std::function<void (const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp)>;
 
 //聊天服务器业务类
 class ChatService
 {
 public:
     //获取单例对象
-    static ChatService* instance(); 
+    static ChatService* instance();
     //处理登陆业务
-    void login(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    void login(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
     //处理注册业务
-    void reg(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    void reg(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
     //一对一聊天业务
-    void oneChat(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    void oneChat(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
     //添加好友业务
-    void addFriend(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    void addFriendRequest(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
+    void addFriendResponse(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
     //创建群组业务
-    void createGroup(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    void createGroup(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
     //加入群组业务
-    void addGroup(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    void addGroupRequest(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
+    void addGroupResponse(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
     //群组聊天业务
-    void groupChat(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    void groupChat(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
     //处理注销业务
-    void loginout(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    void loginout(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time);
     //获取消息对应的处理器
-    MsgHandler getHandler(int msgid);
+    MsgHandler getHandler(chat_proto::MessageType);
     //服务器异常,处理方法
     void reset();
     //处理客户端异常退出
@@ -53,7 +56,7 @@ public:
 private:
     ChatService();
     //存储消息id和其对应的业务处理方法
-    unordered_map<int, MsgHandler> _msgHandlerMap;
+    unordered_map<chat_proto::MessageType, MsgHandler> _msgHandlerMap;
 
     //存储在线用户的通信连接
     unordered_map<int, TcpConnectionPtr> _userConnMap;

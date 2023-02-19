@@ -17,14 +17,14 @@ public:
     }
 
     void setId(int id) { this->id = id; }
-    void setName(string name) { this->name = name; }
-    void setPwd(string pwd) { this->password = pwd; }
-    void setState(string state) { this->state = state; }
+    void setName(const string name) { this->name = name; }
+    void setPwd(const string pwd) { this->password = pwd; }
+    void setState(const string state) { this->state = state; }
 
-    int getId() { return this->id; }
-    string getName() { return this->name; }
-    string getPwd() { return this->password; }
-    string getState() { return this->state; }
+    uint32_t getId() const { return this->id; }
+    const string getName() const { return this->name; }
+    const string getPwd() const { return this->password; }
+    const string getState() const { return this->state; }
 private:
     int id;
     string name;
