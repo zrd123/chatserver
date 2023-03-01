@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <muduo/base/Logging.h>
+#include "others.pb.h"
 
 using namespace std;
 using namespace placeholders;
@@ -42,7 +43,10 @@ void ChatServer::onConnection(const TcpConnectionPtr &conn)
     //上报读写事件相关信息的回调函数
 void ChatServer::onMessage(const TcpConnectionPtr &conn, Buffer *buffer, Timestamp time)
 {
-    string buf = buffer->retrieveAllAsString();
+    // string buf(buffer->retrieveAllAsString());
+    string length(buffer->retrieveAsString(sizeof(uint32_t)));
+    string buf(buffer->retrieveAsString(*(uint32_t*)length.c_str()));
+    std::cout << "receive length: " << *(uint32_t*)length.c_str() << std::endl;
     //数据反序列化
     chat_proto::ChatMessage cmsg;
     if(!cmsg.ParseFromString(buf)){

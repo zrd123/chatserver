@@ -1,8 +1,8 @@
 #ifndef USERMODEL_H
 #define USERMODEL_H
 
+#include "others.pb.h"
 #include "user.hpp"
-
 //User表的数据操作类
 class UserModel
 {
@@ -17,6 +17,7 @@ public:
     std::string cacheQuery(uint32_t id);
 
     //更新用户状态信息
+    bool updateState(chat_proto::User user);
     bool updateState(User user);
 
     //重置用户状态信息

@@ -1,22 +1,27 @@
 syntax = "proto3";
 
+//option optimize_for = LITE_RUNTIME;
+
 import "base.proto";
 
 package chat_proto;
 
 message ChatMessage{
 	MessageType type = 1;
-	bytes message_body = 2;
+    optional uint32 length = 2;
+    bytes message_body = 3;
 }
 
 message LoginRequest{
-	uint32 user_id = 1;
-	bytes user_name = 2;
-	bytes password = 3;
+    uint32 user_id = 1;
+    bytes password = 2;
+    bool request_info = 3;
 }
 
 message LoginResponse{
-	Error error_status = 1;
+    Error error_status = 1;
+    User user = 2;
+    LoadResponse user_info = 3;
 }
 message LoginoutRequest{
 	uint32 user_id = 1;
@@ -32,8 +37,11 @@ message RegisterResponse{
 }
 
 message OneChatRequest{
-	uint32 to_id = 1;
-	bytes chat_message = 2;
+    uint32 user_id = 1;
+    uint32 to_id = 2;
+    bytes time = 3;
+    ChatType type = 4;
+    bytes chat_message = 5;
 }
 message AddFriendRequest{
 	uint32 user_id = 1;
@@ -59,13 +67,18 @@ message CreateGroupResponse{
 message AddGroupRequest{
 	uint32 user_id = 1;
 	uint32 group_id = 2;
+    bytes verify_message = 3;
 }
 message AddGroupResponse{
-	bool pass = 1;
-	bytes reject_message = 2;
+    uint32 user_id = 1;
+    uint32 group_id = 2;
+    bool pass = 3;
+    bytes reject_message = 4;
 }
 message GroupChatRequest{
 	uint32 user_id = 1;
 	uint32 group_id = 2;
-	bytes group_chat_message = 3;
+    ChatType type = 3;
+    bytes time = 4;
+    bytes group_chat_message = 5;
 }

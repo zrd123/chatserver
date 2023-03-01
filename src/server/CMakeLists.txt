@@ -9,7 +9,8 @@ aux_source_directory(./protobuf PROTOBUF_LIST)
 # 指定生成可执行文件
 add_executable(ChatServer ${SRC_LIST} ${DB_LIST} ${MODEL_LIST} ${REDIS_LIST} ${PROTOBUF_LIST})
 
-#link_libraries("/usr/lib64/mysql/libmysqlclient.so")
+link_libraries("/usr/lib64")
+# add_definitions("-D_GLIBCXX_USE_CXX11_ABI=0")
 
 # 指定库文件
 target_link_libraries(ChatServer muduo_net muduo_base libmysqlclient.so hiredis pthread protobuf)

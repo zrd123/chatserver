@@ -64,6 +64,25 @@ std::string UserModel::cacheQuery(unsigned int id)
 
 
 //更新用户状态信息
+bool UserModel::updateState(chat_proto::User user)
+{
+    char sql[1024] = {0};
+    sprintf(sql, "update user set state = '%s' where id = '%d'", user.status().c_str(), user.id());
+    MySQL mysql;
+    if(mysql.connect()){
+        auto redis = RedisConnectionPool::Get();
+        RedisResult result;
+        if(mysql.update(sql)){
+            sprintf(sql, "SET %d %s", user.id(), user.status().c_str());
+            redis.get()->execCommand(sql, result);
+            RedisConnectionPool::Back(redis);
+            return true;
+        }
+        RedisConnectionPool::Back(redis);
+    }
+    return false;
+}
+//更新用户状态信息
 bool UserModel::updateState(User user)
 {
     char sql[1024] = {0};
@@ -82,6 +101,7 @@ bool UserModel::updateState(User user)
     }
     return false;
 }
+
 
 //重置用户状态信息
 void UserModel::resetState()

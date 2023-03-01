@@ -2,16 +2,16 @@
 #include "db.h"
 
 //创建群组
-bool GroupModel::createGroup(Group &group)
+bool GroupModel::createGroup(chat_proto::Group &group)
 {
     char sql[1024] = {0};
     sprintf(sql, "insert into allgroup(groupname, groupdesc) values('%s', '%s')",
-            group.getName().c_str(), group.getDesc().c_str());
+            group.name().c_str(), group.description().c_str());
     
     MySQL mysql;
     if(mysql.connect()){
         if(mysql.update(sql)){
-            group.setId(mysql_insert_id(mysql.getConnection()));
+            group.set_id(mysql_insert_id(mysql.getConnection()));
             return true;
         }
     }
@@ -19,7 +19,7 @@ bool GroupModel::createGroup(Group &group)
 }
 
 //加入群组
-void GroupModel::addGroup(int userid, int groupid, string role)
+void GroupModel::addGroup(uint32_t userid, uint32_t groupid, std::string role)
 {
     char sql[1024] = {0};
     sprintf(sql, "insert into groupuser values(%d, %d, '%s')",
@@ -32,7 +32,7 @@ void GroupModel::addGroup(int userid, int groupid, string role)
 }
 
 //查询用户所在群组信息
-vector<Group> GroupModel::queryGroups(int userid)
+std::vector<chat_proto::Group> GroupModel::queryGroups(uint32_t userid)
 {
     /*
     先根据userid在groupuser表中查询出该用户所属的群组信息
@@ -42,7 +42,7 @@ vector<Group> GroupModel::queryGroups(int userid)
     sprintf(sql, "select a.id,a.groupname,a.groupdesc from allgroup a inner join \
             groupuser b on a.id = b.groupid where b.userid = %d", userid);
     
-    vector<Group> groupVec;
+    std::vector<chat_proto::Group> groupVec;
     MySQL mysql;
     if(mysql.connect()){
         MYSQL_RES *res = mysql.query(sql);
@@ -50,29 +50,32 @@ vector<Group> GroupModel::queryGroups(int userid)
             MYSQL_ROW row;
             //查出userid所有的群组信息
             while((row = mysql_fetch_row(res)) != nullptr){
-                Group group;
-                group.setId(atoi(row[0]));
-                group.setName(row[1]);
-                group.setDesc(row[2]);
+                chat_proto::Group group;
+                group.set_id(atoi(row[0]));
+                group.set_name(row[1]);
+                group.set_description(row[2]);
+                // group.setId(atoi(row[0]));
+                // group.setName(row[1]);
+                // group.setDesc(row[2]);
                 groupVec.push_back(group);
             }
             mysql_free_result_nonblocking(res);
         }
     }
     //查询群组的用户信息
-    for(Group &group : groupVec){
+    for(chat_proto::Group &group : groupVec){
         sprintf(sql, "select a.id,a.name,a.state,b.grouprole from user a \
-        inner join groupuser b on b.userid = a.id where b.groupid = %d", group.getId());
+        inner join groupuser b on b.userid = a.id where b.groupid = %d", group.id());
         MYSQL_RES *res = mysql.query(sql);
         if(nullptr != res){
             MYSQL_ROW row;
             while((row = mysql_fetch_row(res)) != nullptr){
-                GroupUser user;
-                user.setId(atoi(row[0]));
-                user.setName(row[1]);
-                user.setState(row[2]);
-                user.setRole(row[3]);
-                group.getUsers().push_back(user);
+                chat_proto::GroupMember *member = group.add_members();
+                chat_proto::User *user = member->mutable_user();
+                user->set_id(atoi(row[0]));
+                user->set_name(row[1]);
+                user->set_status(row[2]);
+                member->set_role(row[3]);
             }
             mysql_free_result_nonblocking(res);
         }
@@ -81,12 +84,12 @@ vector<Group> GroupModel::queryGroups(int userid)
 }
 
 //根据指定的groupid查询群组用户id列表,除userid自己,主要用户群聊业务给其他成员发送信息
-vector<int> GroupModel::queryGroupUsers(int userid, int groupid)
+std::vector<uint32_t> GroupModel::queryGroupUsers(uint32_t userid, uint32_t groupid)
 {
     char sql[1024] = {0};
     sprintf(sql, "select userid from groupuser where groupid = %d and userid != %d", groupid, userid);
 
-    vector<int> idVec;
+    std::vector<uint32_t> idVec;
     MySQL mysql;
     if(mysql.connect()){
         MYSQL_RES *res = mysql.query(sql);

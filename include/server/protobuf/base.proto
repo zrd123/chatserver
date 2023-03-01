@@ -13,6 +13,13 @@ enum Error{
 	UNKNOWN_ERR = 7;	//未知错误
 }
 
+enum ChatType{
+	TEXT = 0;
+	PICRURE = 1;
+	VIDEO = 2;
+	FILE = 3;
+}
+
 enum MessageType{
 	UNKNOWN_MSG = 0;		//未知类型
 	LOAD_MAS = 1;			//加载信息请求	
@@ -36,7 +43,7 @@ enum MessageType{
 message User{
 	uint32 id = 1;
 	bytes name = 2;
-	bytes status =3;
+	bytes status = 3;
 }
 
 message GroupMember{

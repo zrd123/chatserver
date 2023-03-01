@@ -2,20 +2,19 @@
 #define OFFLINEMESSAGEMODEL_H
 #include <string>
 #include <vector>
-using std::vector;
-using std::string;
+
 //提供离线消息表的操作接口方法
 class OfflineMsgModel
 {
 public:
     //存储用户的离线消息
-    void insert(int userid, string msg);
+    void insert(uint32_t userid, std::string &msg);
 
     //删除用户离线消息
-    void remove(int userid);
+    void remove(uint32_t userid);
 
     //查询用户的离线消息
-    vector<string> query(int userid);
+    std::vector<std::string> query(uint32_t userid);
 };
 
 #endif
