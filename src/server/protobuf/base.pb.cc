@@ -21,6 +21,20 @@ namespace _pb = ::PROTOBUF_NAMESPACE_ID;
 namespace _pbi = _pb::internal;
 
 namespace chat_proto {
+PROTOBUF_CONSTEXPR Encryption::Encryption(
+    ::_pbi::ConstantInitialized)
+  : code_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
+  , type_(0)
+{}
+struct EncryptionDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR EncryptionDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~EncryptionDefaultTypeInternal() {}
+  union {
+    Encryption _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 EncryptionDefaultTypeInternal _Encryption_default_instance_;
 PROTOBUF_CONSTEXPR User::User(
     ::_pbi::ConstantInitialized)
   : name_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
@@ -53,7 +67,8 @@ PROTOBUF_CONSTEXPR Group::Group(
   : members_()
   , name_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
   , description_(&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{})
-  , id_(0u){}
+  , id_(0u)
+  , creator_(0u){}
 struct GroupDefaultTypeInternal {
   PROTOBUF_CONSTEXPR GroupDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
@@ -77,11 +92,19 @@ struct LoadResponseDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 LoadResponseDefaultTypeInternal _LoadResponse_default_instance_;
 }  // namespace chat_proto
-static ::_pb::Metadata file_level_metadata_base_2eproto[4];
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_base_2eproto[3];
+static ::_pb::Metadata file_level_metadata_base_2eproto[5];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_base_2eproto[4];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_base_2eproto = nullptr;
 
 const uint32_t TableStruct_base_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::chat_proto::Encryption, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::chat_proto::Encryption, type_),
+  PROTOBUF_FIELD_OFFSET(::chat_proto::Encryption, code_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::chat_proto::User, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -110,6 +133,7 @@ const uint32_t TableStruct_base_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pro
   PROTOBUF_FIELD_OFFSET(::chat_proto::Group, id_),
   PROTOBUF_FIELD_OFFSET(::chat_proto::Group, name_),
   PROTOBUF_FIELD_OFFSET(::chat_proto::Group, description_),
+  PROTOBUF_FIELD_OFFSET(::chat_proto::Group, creator_),
   PROTOBUF_FIELD_OFFSET(::chat_proto::Group, members_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::chat_proto::LoadResponse, _internal_metadata_),
@@ -121,13 +145,15 @@ const uint32_t TableStruct_base_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pro
   PROTOBUF_FIELD_OFFSET(::chat_proto::LoadResponse, group_list_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, -1, sizeof(::chat_proto::User)},
-  { 9, 17, -1, sizeof(::chat_proto::GroupMember)},
-  { 19, -1, -1, sizeof(::chat_proto::Group)},
-  { 29, -1, -1, sizeof(::chat_proto::LoadResponse)},
+  { 0, -1, -1, sizeof(::chat_proto::Encryption)},
+  { 8, -1, -1, sizeof(::chat_proto::User)},
+  { 17, 25, -1, sizeof(::chat_proto::GroupMember)},
+  { 27, -1, -1, sizeof(::chat_proto::Group)},
+  { 38, -1, -1, sizeof(::chat_proto::LoadResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
+  &::chat_proto::_Encryption_default_instance_._instance,
   &::chat_proto::_User_default_instance_._instance,
   &::chat_proto::_GroupMember_default_instance_._instance,
   &::chat_proto::_Group_default_instance_._instance,
@@ -135,34 +161,37 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_base_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nbase.proto\022\nchat_proto\"0\n\004User\022\n\n\002id\030\001"
-  " \001(\r\022\014\n\004name\030\002 \001(\014\022\016\n\006status\030\003 \001(\014\"I\n\013Gr"
-  "oupMember\022\036\n\004user\030\001 \001(\0132\020.chat_proto.Use"
-  "r\022\021\n\004role\030\002 \001(\014H\000\210\001\001B\007\n\005_role\"`\n\005Group\022\n"
-  "\n\002id\030\001 \001(\r\022\014\n\004name\030\002 \001(\014\022\023\n\013description\030"
-  "\003 \001(\014\022(\n\007members\030\004 \003(\0132\027.chat_proto.Grou"
-  "pMember\"\\\n\014LoadResponse\022%\n\013friend_list\030\001"
-  " \003(\0132\020.chat_proto.User\022%\n\ngroup_list\030\002 \003"
-  "(\0132\021.chat_proto.Group*\206\001\n\005Error\022\n\n\006NO_ER"
-  "R\020\000\022\r\n\tREG_ERR_1\020\001\022\r\n\tREG_ERR_2\020\002\022\017\n\013LOG"
-  "IN_ERR_1\020\003\022\017\n\013LOGIN_ERR_2\020\004\022\017\n\013LOGIN_ERR"
-  "_3\020\005\022\017\n\013CRE_GRP_ERR\020\006\022\017\n\013UNKNOWN_ERR\020\007*6"
-  "\n\010ChatType\022\010\n\004TEXT\020\000\022\013\n\007PICRURE\020\001\022\t\n\005VID"
-  "EO\020\002\022\010\n\004FILE\020\003*\254\002\n\013MessageType\022\017\n\013UNKNOW"
-  "N_MSG\020\000\022\014\n\010LOAD_MAS\020\001\022\014\n\010LOAD_ACK\020\002\022\r\n\tL"
-  "OGIN_MSG\020\003\022\021\n\rLOGIN_MSG_ACK\020\004\022\013\n\007REG_MSG"
-  "\020\005\022\017\n\013REG_MSG_ACK\020\006\022\020\n\014ONE_CHAT_MSG\020\007\022\022\n"
-  "\016ADD_FRIEND_MSG\020\010\022\022\n\016ADD_FRIEND_ACK\020\t\022\024\n"
-  "\020CREATE_GROUP_MSG\020\n\022\024\n\020CREATE_GROUP_ACK\020"
-  "\013\022\021\n\rADD_GROUP_MSG\020\014\022\021\n\rADD_GROUP_ACK\020\r\022"
-  "\022\n\016GROUP_CHAT_MSG\020\016\022\020\n\014LOGINOUT_MSG\020\017b\006p"
-  "roto3"
+  "\n\nbase.proto\022\nchat_proto\"k\n\nEncryption\022."
+  "\n\004type\030\001 \001(\0162 .chat_proto.Encryption.Enc"
+  "ryType\022\014\n\004code\030\002 \001(\014\"\037\n\tEncryType\022\010\n\004MRS"
+  "A\020\000\022\010\n\004MAES\020\001\"0\n\004User\022\n\n\002id\030\001 \001(\r\022\014\n\004nam"
+  "e\030\002 \001(\014\022\016\n\006status\030\003 \001(\014\"I\n\013GroupMember\022\036"
+  "\n\004user\030\001 \001(\0132\020.chat_proto.User\022\021\n\004role\030\002"
+  " \001(\014H\000\210\001\001B\007\n\005_role\"q\n\005Group\022\n\n\002id\030\001 \001(\r\022"
+  "\014\n\004name\030\002 \001(\014\022\023\n\013description\030\003 \001(\014\022\017\n\007cr"
+  "eator\030\004 \001(\r\022(\n\007members\030\005 \003(\0132\027.chat_prot"
+  "o.GroupMember\"\\\n\014LoadResponse\022%\n\013friend_"
+  "list\030\001 \003(\0132\020.chat_proto.User\022%\n\ngroup_li"
+  "st\030\002 \003(\0132\021.chat_proto.Group*\206\001\n\005Error\022\n\n"
+  "\006NO_ERR\020\000\022\r\n\tREG_ERR_1\020\001\022\r\n\tREG_ERR_2\020\002\022"
+  "\017\n\013LOGIN_ERR_1\020\003\022\017\n\013LOGIN_ERR_2\020\004\022\017\n\013LOG"
+  "IN_ERR_3\020\005\022\017\n\013CRE_GRP_ERR\020\006\022\017\n\013UNKNOWN_E"
+  "RR\020\007*6\n\010ChatType\022\010\n\004TEXT\020\000\022\013\n\007PICRURE\020\001\022"
+  "\t\n\005VIDEO\020\002\022\010\n\004FILE\020\003*\244\002\n\013MessageType\022\017\n\013"
+  "UNKNOWN_MSG\020\000\022\014\n\010LOAD_MAS\020\001\022\014\n\010LOAD_ACK\020"
+  "\002\022\r\n\tLOGIN_MSG\020\003\022\r\n\tLOGIN_ACK\020\004\022\013\n\007REG_M"
+  "SG\020\005\022\013\n\007REG_ACK\020\006\022\020\n\014ONE_CHAT_MSG\020\007\022\022\n\016A"
+  "DD_FRIEND_MSG\020\010\022\022\n\016ADD_FRIEND_ACK\020\t\022\024\n\020C"
+  "REATE_GROUP_MSG\020\n\022\024\n\020CREATE_GROUP_ACK\020\013\022"
+  "\021\n\rADD_GROUP_MSG\020\014\022\021\n\rADD_GROUP_ACK\020\r\022\022\n"
+  "\016GROUP_CHAT_MSG\020\016\022\020\n\014LOGINOUT_MSG\020\017b\006pro"
+  "to3"
   ;
 static ::_pbi::once_flag descriptor_table_base_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_base_2eproto = {
-    false, false, 845, descriptor_table_protodef_base_2eproto,
+    false, false, 963, descriptor_table_protodef_base_2eproto,
     "base.proto",
-    &descriptor_table_base_2eproto_once, nullptr, 0, 4,
+    &descriptor_table_base_2eproto_once, nullptr, 0, 5,
     schemas, file_default_instances, TableStruct_base_2eproto::offsets,
     file_level_metadata_base_2eproto, file_level_enum_descriptors_base_2eproto,
     file_level_service_descriptors_base_2eproto,
@@ -174,9 +203,30 @@ PROTOBUF_ATTRIBUTE_WEAK const ::_pbi::DescriptorTable* descriptor_table_base_2ep
 // Force running AddDescriptors() at dynamic initialization time.
 PROTOBUF_ATTRIBUTE_INIT_PRIORITY2 static ::_pbi::AddDescriptorsRunner dynamic_init_dummy_base_2eproto(&descriptor_table_base_2eproto);
 namespace chat_proto {
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Error_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Encryption_EncryType_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_base_2eproto);
   return file_level_enum_descriptors_base_2eproto[0];
+}
+bool Encryption_EncryType_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+      return true;
+    default:
+      return false;
+  }
+}
+
+#if (__cplusplus < 201703) && (!defined(_MSC_VER) || (_MSC_VER >= 1900 && _MSC_VER < 1912))
+constexpr Encryption_EncryType Encryption::MRSA;
+constexpr Encryption_EncryType Encryption::MAES;
+constexpr Encryption_EncryType Encryption::EncryType_MIN;
+constexpr Encryption_EncryType Encryption::EncryType_MAX;
+constexpr int Encryption::EncryType_ARRAYSIZE;
+#endif  // (__cplusplus < 201703) && (!defined(_MSC_VER) || (_MSC_VER >= 1900 && _MSC_VER < 1912))
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Error_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_base_2eproto);
+  return file_level_enum_descriptors_base_2eproto[1];
 }
 bool Error_IsValid(int value) {
   switch (value) {
@@ -196,7 +246,7 @@ bool Error_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ChatType_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_base_2eproto);
-  return file_level_enum_descriptors_base_2eproto[1];
+  return file_level_enum_descriptors_base_2eproto[2];
 }
 bool ChatType_IsValid(int value) {
   switch (value) {
@@ -212,7 +262,7 @@ bool ChatType_IsValid(int value) {
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MessageType_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_base_2eproto);
-  return file_level_enum_descriptors_base_2eproto[2];
+  return file_level_enum_descriptors_base_2eproto[3];
 }
 bool MessageType_IsValid(int value) {
   switch (value) {
@@ -238,6 +288,225 @@ bool MessageType_IsValid(int value) {
   }
 }
 
+
+// ===================================================================
+
+class Encryption::_Internal {
+ public:
+};
+
+Encryption::Encryption(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor();
+  // @@protoc_insertion_point(arena_constructor:chat_proto.Encryption)
+}
+Encryption::Encryption(const Encryption& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  code_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    code_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_code().empty()) {
+    code_.Set(from._internal_code(), 
+      GetArenaForAllocation());
+  }
+  type_ = from.type_;
+  // @@protoc_insertion_point(copy_constructor:chat_proto.Encryption)
+}
+
+inline void Encryption::SharedCtor() {
+code_.InitDefault();
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  code_.Set("", GetArenaForAllocation());
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+type_ = 0;
+}
+
+Encryption::~Encryption() {
+  // @@protoc_insertion_point(destructor:chat_proto.Encryption)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void Encryption::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  code_.Destroy();
+}
+
+void Encryption::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+
+void Encryption::Clear() {
+// @@protoc_insertion_point(message_clear_start:chat_proto.Encryption)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  code_.ClearToEmpty();
+  type_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* Encryption::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // .chat_proto.Encryption.EncryType type = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_type(static_cast<::chat_proto::Encryption_EncryType>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes code = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_code();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* Encryption::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:chat_proto.Encryption)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .chat_proto.Encryption.EncryType type = 1;
+  if (this->_internal_type() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+      1, this->_internal_type(), target);
+  }
+
+  // bytes code = 2;
+  if (!this->_internal_code().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        2, this->_internal_code(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:chat_proto.Encryption)
+  return target;
+}
+
+size_t Encryption::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:chat_proto.Encryption)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // bytes code = 2;
+  if (!this->_internal_code().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_code());
+  }
+
+  // .chat_proto.Encryption.EncryType type = 1;
+  if (this->_internal_type() != 0) {
+    total_size += 1 +
+      ::_pbi::WireFormatLite::EnumSize(this->_internal_type());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData Encryption::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
+    Encryption::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*Encryption::GetClassData() const { return &_class_data_; }
+
+void Encryption::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+                      const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+  static_cast<Encryption *>(to)->MergeFrom(
+      static_cast<const Encryption &>(from));
+}
+
+
+void Encryption::MergeFrom(const Encryption& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:chat_proto.Encryption)
+  GOOGLE_DCHECK_NE(&from, this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_code().empty()) {
+    _internal_set_code(from._internal_code());
+  }
+  if (from._internal_type() != 0) {
+    _internal_set_type(from._internal_type());
+  }
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void Encryption::CopyFrom(const Encryption& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:chat_proto.Encryption)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Encryption::IsInitialized() const {
+  return true;
+}
+
+void Encryption::InternalSwap(Encryption* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &code_, lhs_arena,
+      &other->code_, rhs_arena
+  );
+  swap(type_, other->type_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata Encryption::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_base_2eproto_getter, &descriptor_table_base_2eproto_once,
+      file_level_metadata_base_2eproto[0]);
+}
 
 // ===================================================================
 
@@ -495,7 +764,7 @@ void User::InternalSwap(User* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata User::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_base_2eproto_getter, &descriptor_table_base_2eproto_once,
-      file_level_metadata_base_2eproto[0]);
+      file_level_metadata_base_2eproto[1]);
 }
 
 // ===================================================================
@@ -740,7 +1009,7 @@ void GroupMember::InternalSwap(GroupMember* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata GroupMember::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_base_2eproto_getter, &descriptor_table_base_2eproto_once,
-      file_level_metadata_base_2eproto[1]);
+      file_level_metadata_base_2eproto[2]);
 }
 
 // ===================================================================
@@ -776,7 +1045,9 @@ Group::Group(const Group& from)
     description_.Set(from._internal_description(), 
       GetArenaForAllocation());
   }
-  id_ = from.id_;
+  ::memcpy(&id_, &from.id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&creator_) -
+    reinterpret_cast<char*>(&id_)) + sizeof(creator_));
   // @@protoc_insertion_point(copy_constructor:chat_proto.Group)
 }
 
@@ -789,7 +1060,10 @@ description_.InitDefault();
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
   description_.Set("", GetArenaForAllocation());
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-id_ = 0u;
+::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+    reinterpret_cast<char*>(&id_) - reinterpret_cast<char*>(this)),
+    0, static_cast<size_t>(reinterpret_cast<char*>(&creator_) -
+    reinterpret_cast<char*>(&id_)) + sizeof(creator_));
 }
 
 Group::~Group() {
@@ -820,7 +1094,9 @@ void Group::Clear() {
   members_.Clear();
   name_.ClearToEmpty();
   description_.ClearToEmpty();
-  id_ = 0u;
+  ::memset(&id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&creator_) -
+      reinterpret_cast<char*>(&id_)) + sizeof(creator_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -856,16 +1132,24 @@ const char* Group::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
         } else
           goto handle_unusual;
         continue;
-      // repeated .chat_proto.GroupMember members = 4;
+      // uint32 creator = 4;
       case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          creator_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .chat_proto.GroupMember members = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
           ptr -= 1;
           do {
             ptr += 1;
             ptr = ctx->ParseMessage(_internal_add_members(), ptr);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<34>(ptr));
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<42>(ptr));
         } else
           goto handle_unusual;
         continue;
@@ -916,12 +1200,18 @@ uint8_t* Group::_InternalSerialize(
         3, this->_internal_description(), target);
   }
 
-  // repeated .chat_proto.GroupMember members = 4;
+  // uint32 creator = 4;
+  if (this->_internal_creator() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt32ToArray(4, this->_internal_creator(), target);
+  }
+
+  // repeated .chat_proto.GroupMember members = 5;
   for (unsigned i = 0,
       n = static_cast<unsigned>(this->_internal_members_size()); i < n; i++) {
     const auto& repfield = this->_internal_members(i);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-        InternalWriteMessage(4, repfield, repfield.GetCachedSize(), target, stream);
+        InternalWriteMessage(5, repfield, repfield.GetCachedSize(), target, stream);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -940,7 +1230,7 @@ size_t Group::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .chat_proto.GroupMember members = 4;
+  // repeated .chat_proto.GroupMember members = 5;
   total_size += 1UL * this->_internal_members_size();
   for (const auto& msg : this->members_) {
     total_size +=
@@ -964,6 +1254,11 @@ size_t Group::ByteSizeLong() const {
   // uint32 id = 1;
   if (this->_internal_id() != 0) {
     total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_id());
+  }
+
+  // uint32 creator = 4;
+  if (this->_internal_creator() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(this->_internal_creator());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
@@ -998,6 +1293,9 @@ void Group::MergeFrom(const Group& from) {
   if (from._internal_id() != 0) {
     _internal_set_id(from._internal_id());
   }
+  if (from._internal_creator() != 0) {
+    _internal_set_creator(from._internal_creator());
+  }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -1026,13 +1324,18 @@ void Group::InternalSwap(Group* other) {
       &description_, lhs_arena,
       &other->description_, rhs_arena
   );
-  swap(id_, other->id_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Group, creator_)
+      + sizeof(Group::creator_)
+      - PROTOBUF_FIELD_OFFSET(Group, id_)>(
+          reinterpret_cast<char*>(&id_),
+          reinterpret_cast<char*>(&other->id_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata Group::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_base_2eproto_getter, &descriptor_table_base_2eproto_once,
-      file_level_metadata_base_2eproto[2]);
+      file_level_metadata_base_2eproto[3]);
 }
 
 // ===================================================================
@@ -1243,12 +1546,16 @@ void LoadResponse::InternalSwap(LoadResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata LoadResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_base_2eproto_getter, &descriptor_table_base_2eproto_once,
-      file_level_metadata_base_2eproto[3]);
+      file_level_metadata_base_2eproto[4]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace chat_proto
 PROTOBUF_NAMESPACE_OPEN
+template<> PROTOBUF_NOINLINE ::chat_proto::Encryption*
+Arena::CreateMaybeMessage< ::chat_proto::Encryption >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::chat_proto::Encryption >(arena);
+}
 template<> PROTOBUF_NOINLINE ::chat_proto::User*
 Arena::CreateMaybeMessage< ::chat_proto::User >(Arena* arena) {
   return Arena::CreateMessageInternal< ::chat_proto::User >(arena);

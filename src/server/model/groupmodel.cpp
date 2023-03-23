@@ -1,12 +1,31 @@
 #include "groupmodel.hpp"
 #include "db.h"
-
-//创建群组
-bool GroupModel::createGroup(chat_proto::Group &group)
+    
+uint32_t GroupModel::creator(uint32_t id)
 {
     char sql[1024] = {0};
-    sprintf(sql, "insert into allgroup(groupname, groupdesc) values('%s', '%s')",
-            group.name().c_str(), group.description().c_str());
+    sprintf(sql, "select creator from allgroup where id='%d'", id);
+    uint32_t creator = 0;
+    MySQL mysql;
+    if(mysql.connect()){
+        MYSQL_RES *res = mysql.query(sql);
+        if(nullptr != res){
+            MYSQL_ROW row;
+            while((row = mysql_fetch_row(res)) != nullptr){
+                creator = (atoi(row[0]));
+            }
+            mysql_free_result_nonblocking(res);
+        }
+    }
+    return creator;
+}
+
+//创建群组
+bool GroupModel::createGroup(chat_proto::Group &group, uint32_t creator)
+{
+    char sql[1024] = {0};
+    sprintf(sql, "insert into allgroup(groupname, groupdesc, creator) values('%s', '%s', '%d')",
+            group.name().c_str(), group.description().c_str(), creator);
     
     MySQL mysql;
     if(mysql.connect()){
@@ -24,7 +43,6 @@ void GroupModel::addGroup(uint32_t userid, uint32_t groupid, std::string role)
     char sql[1024] = {0};
     sprintf(sql, "insert into groupuser values(%d, %d, '%s')",
             groupid, userid, role.c_str());
-    
     MySQL mysql;
     if(mysql.connect()){
         mysql.update(sql);
@@ -39,9 +57,8 @@ std::vector<chat_proto::Group> GroupModel::queryGroups(uint32_t userid)
     再根据群组信息,查询属于该群组的所有用户的userid,并且和user表进行多表联合查询,查出用户的详细信息
     */
     char sql[1024] = {0};
-    sprintf(sql, "select a.id,a.groupname,a.groupdesc from allgroup a inner join \
+    sprintf(sql, "select a.id,a.groupname,a.groupdesc,a.creator from allgroup a inner join \
             groupuser b on a.id = b.groupid where b.userid = %d", userid);
-    
     std::vector<chat_proto::Group> groupVec;
     MySQL mysql;
     if(mysql.connect()){
@@ -54,9 +71,7 @@ std::vector<chat_proto::Group> GroupModel::queryGroups(uint32_t userid)
                 group.set_id(atoi(row[0]));
                 group.set_name(row[1]);
                 group.set_description(row[2]);
-                // group.setId(atoi(row[0]));
-                // group.setName(row[1]);
-                // group.setDesc(row[2]);
+                group.set_creator(atoi(row[3]));
                 groupVec.push_back(group);
             }
             mysql_free_result_nonblocking(res);

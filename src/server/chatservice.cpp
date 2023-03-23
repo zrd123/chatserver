@@ -1,11 +1,12 @@
 #include "chatservice.hpp"
 #include "public.hpp"
 #include "user.hpp"
-
+#include "encryption.hpp"
 #include <iostream>
 #include <map>
 #include <vector>
 #include <muduo/base/Logging.h>
+#include <openssl/aes.h>
 
 using std::map;
 using std::vector;
@@ -72,16 +73,16 @@ void ChatService::login(const TcpConnectionPtr &conn, chat_proto::ChatMessage &c
 {
     LOG_INFO << "do login service !";
     chat_proto::LoginRequest loginRst;
-    if (!loginRst.ParseFromString(cmsg.message_body())){
+    std::string *msg = cmsg.mutable_message_body();
+    Encryption::doDecryption(*msg, cmsg.length(), nullptr);
+    if (!loginRst.ParseFromString(*msg)){
         LOG_ERROR << "parse error in login service";
     }
-    // int id = js["id"].get<int>();
-    // string pwd = js["password"];
-
-    cmsg.set_type(chat_proto::LOGIN_MSG_ACK);
+    cmsg.set_type(chat_proto::LOGIN_ACK);
 
     uint32_t id = loginRst.user_id();
     User user = _userModel.query(id);
+    LOG_INFO << "length:" << cmsg.length() << "id:" << id;
 
     if (user.getId() == id && user.getPwd() == loginRst.password()){
         if (user.getState() == "online"){
@@ -90,20 +91,17 @@ void ChatService::login(const TcpConnectionPtr &conn, chat_proto::ChatMessage &c
             loginRsp.set_error_status(chat_proto::LOGIN_ERR_2);
             std::string *loginmsgbody = cmsg.mutable_message_body();
             loginRsp.SerializeToString(loginmsgbody);
+            uint32_t length = loginmsgbody->size();
+            length = (0 == length % AES_BLOCK_SIZE) ? length : ((length/AES_BLOCK_SIZE)+1)*AES_BLOCK_SIZE;
+            cmsg.set_length(length);
+            Encryption::doEncryption(*loginmsgbody, length, nullptr);
             std::string loginmsg;
             cmsg.SerializeToString(&loginmsg);
-            // json response;
-            // response["msgid"] = LOGIN_MSG_ACK;
-            // response["errno"] = 2;
-            // response["errmsg"] = "该账号已登陆，清重新登陆新账号";
-            uint32_t length = loginmsg.size();
-            std::cout << "send length: " << length << std::endl;
-            std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
+            length = loginmsg.size();
             conn->send((char*)&length, sizeof(uint32_t));
-            conn->send(loginmsg);        
+            conn->send(loginmsg);    
         }
         else{
-            // conn->setTcpNoDelay(true);
             //登陆成功,记录连接信息
             {
                 lock_guard<mutex> lock(_connMutex);
@@ -123,45 +121,30 @@ void ChatService::login(const TcpConnectionPtr &conn, chat_proto::ChatMessage &c
             cuser->set_name(user.getName());
             cuser->set_status(user.getState());
             std::string *loginmsgbody = cmsg.mutable_message_body();
-            // json response;
-            // response["msgid"] = LOGIN_MSG_ACK;
-            // response["errno"] = 0;
-            // response["id"] = user.getId();
-            // response["name"] = user.getName();
 
             //查询用户的好友信息
             if (loginRst.request_info()){
                 chat_proto::LoadResponse *loadRsp = loginRsp.mutable_user_info();
                 vector<chat_proto::User> userVec = _friendModel.query(id);
                 if (!userVec.empty()){
-                    // vector<string> friendVec;
                     for (const chat_proto::User &user : userVec){
                         chat_proto::User *cpuser = loadRsp->add_friend_list();
                         cpuser->set_id(user.id());
                         cpuser->set_name(user.name());
                         cpuser->set_status(user.status());
-                        // json js;
-                        // js["id"] = user.getId();
-                        // js["name"] = user.getName();
-                        // js["state"] = user.getState();
-                        // friendVec.push_back(js.dump());
                     }
                 }
                 //查询用户的群组信息
                 vector<chat_proto::Group> groupuserVec = _groupModel.queryGroups(id);
+                LOG_INFO << "vector size:" << groupuserVec.size();
                 if (!groupuserVec.empty()){
-                    // group:[{groupid:[xxx, xxx, xxx, xxx]}]
-                    // vector<string> groupV;
                     for (const chat_proto::Group &group : groupuserVec){
                         chat_proto::Group *cpgroup = loadRsp->add_group_list();
                         cpgroup->set_id(group.id());
                         cpgroup->set_name(group.name());
                         cpgroup->set_description(group.description());
-                        // json grpjson;
-                        // grpjson["id"] = group.getId();
-                        // grpjson["groupname"] = group.getName();
-                        // grpjson["groupdesc"] = group.getDesc();
-                        // vector<string> userV;
+                        cpgroup->set_creator(group.creator());
+                        LOG_INFO << "group name:" << cpgroup->name();
                         for (const chat_proto::GroupMember &member : group.members()){
                             chat_proto::GroupMember *cpmember = cpgroup->add_members();
                             chat_proto::User *gmember = cpmember->mutable_user();
@@ -169,42 +152,36 @@ void ChatService::login(const TcpConnectionPtr &conn, chat_proto::ChatMessage &c
                             gmember->set_id(member.user().id());
                             gmember->set_name(member.user().name());
                             gmember->set_status(member.user().status());
-                            // json js;
-                            // js["id"] = user.getId();
-                            // js["name"] = user.getName();
-                            // js["state"] = user.getState();
-                            // js["role"] = user.getRole();
-                            // userV.push_back(js.dump());
+                            LOG_INFO << gmember->id() << gmember->status() << gmember->name() << cpmember->role();
                         }
-                        // grpjson["users"] = userV;
-                        // groupV.push_back(grpjson.dump());
                     }
-                    // response["groups"] = groupV;
+                    LOG_INFO << "group_list:" << loadRsp->group_list_size();
                 }
-                std::string *loadmsgbody = cmsg.mutable_message_body();
-                loginRsp.SerializeToString(loadmsgbody);
+                loginRsp.SerializeToString(loginmsgbody);
+                uint32_t length = loginmsgbody->size();
+                length = (0 == length % AES_BLOCK_SIZE) ? length : ((length/AES_BLOCK_SIZE)+1)*AES_BLOCK_SIZE;
+                cmsg.set_length(length);
+                Encryption::doEncryption(*loginmsgbody, length, nullptr);
             }
-            std::string loadmsg;
-            cmsg.SerializeToString(&loadmsg);
-            uint32_t length = loadmsg.size();
-            std::cout << "send length: " << length << std::endl;
-            std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
-            conn->send((char*)&length, sizeof(uint32_t));
-            conn->send(loadmsg);
+            std::string loginmsg;
+            cmsg.SerializeToString(&loginmsg);
+            uint32_t slength = loginmsg.size();
+            
+            std::cout << "send length: " << slength <<" " << cmsg.ByteSizeLong() << std::endl;
+            conn->send((char*)&slength, sizeof(uint32_t));
+            conn->send(loginmsg);
             //查询是否有离线消息
             vector<string> vec = _offlineMsgModel.query(id);
-            for (const std::string &msg : vec){
+            for (std::string &msg : vec){
                 std::cout << "--------------------msg:" << msg << std::endl;
-                uint32_t lengthmsg = msg.size();
-                conn->send((char*)&lengthmsg, sizeof(uint32_t));
+                uint32_t slengthmsg = msg.size();
+                conn->send((char*)&slengthmsg, sizeof(uint32_t));
                 conn->send(msg);
             }
             if (!vec.empty()){
-                // response["offlinemsg"] = vec;
                 //读取离线消息后,把用户的离线消息删除掉
                 _offlineMsgModel.remove(id);
             }
-            // conn->send(response.dump());
         }
     }
     else{
@@ -213,16 +190,15 @@ void ChatService::login(const TcpConnectionPtr &conn, chat_proto::ChatMessage &c
         loginRsp.set_error_status(chat_proto::LOGIN_ERR_3);
         std::string *loginmsgbody = cmsg.mutable_message_body();
         loginRsp.SerializeToString(loginmsgbody);
+        uint32_t length = loginmsgbody->size();
+        length = (0 == length % AES_BLOCK_SIZE) ? length : ((length/AES_BLOCK_SIZE)+1)*AES_BLOCK_SIZE;
+        cmsg.set_length(length);
+        Encryption::doEncryption(*loginmsgbody, length, nullptr);
         std::string loginmsg;
         cmsg.SerializeToString(&loginmsg);
-        // json response;
-        // response["msgid"] = LOGIN_MSG_ACK;
-        // response["errno"] = 1;
-        // response["errmsg"] = "用户不存在或密码错误";
-        uint32_t length = loginmsg.size();
-        std::cout << "send length: " << length << std::endl;
-        std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
-        conn->send((char*)&length, sizeof(uint32_t));
+
+        uint32_t slength = loginmsg.size();
+        conn->send((char*)&slength, sizeof(uint32_t));
         conn->send(loginmsg);    
     }
 }
@@ -230,11 +206,10 @@ void ChatService::login(const TcpConnectionPtr &conn, chat_proto::ChatMessage &c
 //处理注册业务
 void ChatService::reg(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time)
 {
-    // string name = js["name"];
-    // string pwd = js["password"];
-
     chat_proto::RegisterRequest regRst;
-    if (!regRst.ParseFromString(cmsg.message_body())){
+    std::string *msg = cmsg.mutable_message_body();
+    Encryption::doDecryption(*msg, cmsg.length(), nullptr);
+    if (!regRst.ParseFromString(*msg)){
         LOG_ERROR << "parse error in login service";
     }
     User user;
@@ -242,32 +217,28 @@ void ChatService::reg(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cms
     user.setPwd(regRst.password());
     bool state = _userModel.insert(user);
 
-    chat_proto::ChatMessage chatmsg;
-    chatmsg.set_type(chat_proto::REG_MSG_ACK);
+    cmsg.set_type(chat_proto::REG_ACK);
     chat_proto::RegisterResponse regRsp;
     if (state){
         //注册成功
         regRsp.set_error_status(chat_proto::NO_ERR);
         regRsp.set_user_id(user.getId());
-        // json response;
-        // response["msgid"] = REG_MSG_ACK;
-        // response["errno"] = 0;
-        // response["id"] = user.getId();
-        // conn->send(response.dump());
     }
     else{
-        regRsp.set_error_status(chat_proto::REG_ERR_1);
-        // json response;
-        // response["msgid"] = REG_MSG_ACK;
-        // response["errno"] = 1;
-        // conn->send(response.dump());
         //注册失败
+        regRsp.set_error_status(chat_proto::REG_ERR_1);
     }
-    std::string *regmsgbody = chatmsg.mutable_message_body();
+    std::string *regmsgbody = cmsg.mutable_message_body();
     regRsp.SerializeToString(regmsgbody);
+    //加密处理
+    uint32_t length = regmsgbody->size();
+    length = (0 == length % AES_BLOCK_SIZE) ? length : ((length/AES_BLOCK_SIZE)+1)*AES_BLOCK_SIZE;
+    cmsg.set_length(length);
+    Encryption::doEncryption(*regmsgbody, length, nullptr);
+    //最终序列化
     std::string regmsg;
-    chatmsg.SerializeToString(&regmsg);
-    uint32_t length = regmsg.size();
+    cmsg.SerializeToString(&regmsg);
+    length = regmsg.size();
     std::cout << "send length: " << length << std::endl;
     std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
     conn->send((char*)&length, sizeof(uint32_t));
@@ -277,9 +248,10 @@ void ChatService::reg(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cms
 //处理注销业务
 void ChatService::loginout(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time)
 {
-    // int userid = js["id"].get<int>();
     chat_proto::LoginoutRequest logoutRst;
-    if (!logoutRst.ParseFromString(cmsg.message_body())){
+    std::string *msg = cmsg.mutable_message_body();
+    Encryption::doDecryption(*msg, cmsg.length(), nullptr);
+    if (!logoutRst.ParseFromString(*msg)){
         LOG_ERROR << "parse error in loginout service";
     }
     uint32_t userid = logoutRst.user_id();
@@ -329,63 +301,60 @@ void ChatService::oneChat(const TcpConnectionPtr &conn, chat_proto::ChatMessage 
 {
     // int toId = js["toid"].get<int>();
     chat_proto::OneChatRequest ochatRst;
+    std::string msg = cmsg.message_body();
+    Encryption::doDecryption(msg, cmsg.length(), nullptr);
     std::cout << "in one chat: " << cmsg.message_body() << std::endl;
-    if (!ochatRst.ParseFromString(cmsg.message_body())){
+    if (!ochatRst.ParseFromString(msg)){
         LOG_ERROR << "parse error in onchat service";
     }
+
+    std::string ocmsg;
+    cmsg.SerializeToString(&ocmsg);
+    uint32_t length = ocmsg.size();
     uint32_t toId = ochatRst.to_id();
     {
         lock_guard<mutex> lock(_connMutex);
         auto it = _userConnMap.find(toId);
         if (_userConnMap.end() != it){
             // toid在线,在本服务器,转发消息 服务器主动推送消息给toId用户
-            std::string onechatmsg;
-            cmsg.SerializeToString(&onechatmsg);
-            uint32_t length = onechatmsg.size();
             std::cout << "send length: " << length << std::endl;
-            std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
             it->second->send((char*)&length, sizeof(uint32_t));
-            it->second->send(onechatmsg);
+            it->second->send(ocmsg);
             return;
         }
     }
 
     //查询toid是否在线,是否在其他服务器
     if (_userModel.cacheQuery(toId) == "online" || _userModel.query(toId).getState() == "online"){
-        std::string onechatmsg;
-        // ochatRst.SerializeToString(&onechatmsg);
-        cmsg.SerializeToString(&onechatmsg);
-        _redis.publish(toId, onechatmsg);
+        _redis.publish(toId, ocmsg);
         return;
     }
 
     // toid不在现,存储离线消息
-    std::string onechatmsg;
-    cmsg.SerializeToString(&onechatmsg);
-    _offlineMsgModel.insert(toId, onechatmsg);
+    _offlineMsgModel.insert(toId, ocmsg);
 }
 
 //添加好友业务
 void ChatService::addFriendRequest(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time)
 {
-    // int userid = js["id"].get<int>();
-    // int friendid = js["friendid"].get<int>();
     chat_proto::AddFriendRequest addfRst;
-    if (!addfRst.ParseFromString(cmsg.message_body())){
+    std::string msg = cmsg.message_body();
+    Encryption::doDecryption(msg, cmsg.length(), nullptr);
+    if (!addfRst.ParseFromString(msg)){
         LOG_ERROR << "parse error in addfriend request service";
     }
     uint32_t userid = addfRst.user_id();
     uint32_t friendid = addfRst.friend_id();
+
+    std::string afmsg;
+    cmsg.SerializeToString(&afmsg);
+    uint32_t length = afmsg.size();
     {
         lock_guard<mutex> lock(_connMutex);
         auto it = _userConnMap.find(friendid);
         if (_userConnMap.end() != it){
             // toid在线,在本服务器,转发消息 服务器主动推送消息给toId用户
-            std::string afmsg;
-            cmsg.SerializeToString(&afmsg);
-            uint32_t length = afmsg.size();
-            std::cout << "send length: " << length << std::endl;
-            std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
+            std::cout << "send length in add friend request: " << length  << " friendid" << friendid << std::endl;
             it->second->send((char*)&length, sizeof(uint32_t));
             it->second->send(afmsg);            
             return;
@@ -394,22 +363,20 @@ void ChatService::addFriendRequest(const TcpConnectionPtr &conn, chat_proto::Cha
 
     //查询toid是否在线,是否在其他服务器
     if (_userModel.cacheQuery(friendid) == "online" || _userModel.query(friendid).getState() == "online"){
-        std::string afmsg;
-        cmsg.SerializeToString(&afmsg);
         _redis.publish(friendid, afmsg);
         return;
     }
 
     // toid不在现,存储离线消息
-    std::string afmsg;
-    cmsg.SerializeToString(&afmsg);
     _offlineMsgModel.insert(friendid, afmsg);
 }
 
 void ChatService::addFriendResponse(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time)
 {
     chat_proto::AddFriendResponse addfRsp;
-    if (!addfRsp.ParseFromString(cmsg.message_body())){
+    std::string msg = cmsg.message_body();
+    Encryption::doDecryption(msg, cmsg.length(), nullptr);
+    if (!addfRsp.ParseFromString(msg)){
         LOG_ERROR << "parse error in addfriend response service";
     }
     uint32_t userid = addfRsp.user_id();
@@ -419,16 +386,16 @@ void ChatService::addFriendResponse(const TcpConnectionPtr &conn, chat_proto::Ch
         _friendModel.insert(userid, friendid);
         _friendModel.insert(friendid, userid);
     }
+
+    std::string afmsg;
+    cmsg.SerializeToString(&afmsg);
+    uint32_t length = afmsg.size();
     {
         lock_guard<mutex> lock(_connMutex);
         auto it = _userConnMap.find(userid);
         if (_userConnMap.end() != it){
             // toid在线,在本服务器,转发消息 服务器主动推送消息给toId用户
-            std::string afmsg;
-            cmsg.SerializeToString(&afmsg);
-            uint32_t length = afmsg.size();
             std::cout << "send length: " << length << std::endl;
-            std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
             it->second->send((char*)&length, sizeof(uint32_t));
             it->second->send(afmsg);
             return;
@@ -437,15 +404,11 @@ void ChatService::addFriendResponse(const TcpConnectionPtr &conn, chat_proto::Ch
 
     //查询toid是否在线,是否在其他服务器
     if (_userModel.cacheQuery(userid) == "online" || _userModel.query(userid).getState() == "online"){
-        std::string afmsg;
-        cmsg.SerializeToString(&afmsg);
         _redis.publish(userid, afmsg);
         return;
     }
 
     // toid不在现,存储离线消息
-    std::string afmsg;
-    cmsg.SerializeToString(&afmsg);
     _offlineMsgModel.insert(userid, afmsg);
 }
 
@@ -453,19 +416,17 @@ void ChatService::addFriendResponse(const TcpConnectionPtr &conn, chat_proto::Ch
 void ChatService::createGroup(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time)
 {
     chat_proto::CreateGroupRequest creategRst;
-    if (!creategRst.ParseFromString(cmsg.message_body())) {
+    std::string *msg = cmsg.mutable_message_body();
+    Encryption::doDecryption(*msg, cmsg.length(), nullptr);
+    if (!creategRst.ParseFromString(*msg)) {
         LOG_ERROR << "parse error in creategroup request service";
     }
-    // int userid = js["id"].get<int>();
-    // string name = js["groupname"];
-    // string desc = js["groupdesc"];
-
     //存储新创建的群组信息
     chat_proto::Group group;
     group.set_name(creategRst.group_name());
     group.set_description(creategRst.group_description());
     group.set_id(0);
-    if (_groupModel.createGroup(group)){
+    if (_groupModel.createGroup(group, creategRst.user_id())){
         //存储群创建人信息
         _groupModel.addGroup(creategRst.user_id(), group.id(), "creator");
     }
@@ -475,73 +436,126 @@ void ChatService::createGroup(const TcpConnectionPtr &conn, chat_proto::ChatMess
 
     // chat_proto::ChatMessage chatmsg;
     cmsg.set_type(chat_proto::CREATE_GROUP_ACK);
-    std::string *chatmsgbody = cmsg.mutable_message_body();
-    creategRsp.SerializeToString(chatmsgbody);
-    std::string creategmsg;
-    cmsg.SerializeToString(&creategmsg);
-            uint32_t length = creategmsg.size();
-            std::cout << "send length: " << length << std::endl;
-            std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
-            conn->send((char*)&length, sizeof(uint32_t));
-            conn->send(creategmsg);    
-    // conn->send("create Group successfully!");
+    std::string *cgmsgbody = cmsg.mutable_message_body();
+    creategRsp.SerializeToString(cgmsgbody);
+    //加密处理
+    uint32_t length = cgmsgbody->size();
+    length = (0 == length % AES_BLOCK_SIZE) ? length : ((length/AES_BLOCK_SIZE)+1)*AES_BLOCK_SIZE;
+    cmsg.set_length(length);
+    Encryption::doEncryption(*cgmsgbody, length, nullptr);
+    //最终序列化
+    std::string cgmsg;
+    cmsg.SerializeToString(&cgmsg);
+    length = cgmsg.size();
+    std::cout << "send length: " << length << std::endl;
+    std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
+    conn->send((char*)&length, sizeof(uint32_t));
+    conn->send(cgmsg);  
 }
 
 //加入群组业务
 void ChatService::addGroupRequest(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time)
 {
-    // int userid = js["id"].get<int>();
-    // int groupid = js["groupid"].get<int>();
     chat_proto::AddGroupRequest addgRst;
-    if (!addgRst.ParseFromString(cmsg.message_body())){
+    std::string msg = cmsg.message_body();
+    Encryption::doDecryption(msg, cmsg.length(), nullptr);
+    if (!addgRst.ParseFromString(msg)){
         LOG_ERROR << "parse error in addgroup request service";
     }
+    uint32_t groupid = addgRst.group_id();
+    uint32_t creator = _groupModel.creator(groupid);
 
-    chat_proto::AddGroupResponse addgRsp;
-    addgRsp.set_pass(true);
-    if (addgRsp.pass()){
-        _groupModel.addGroup(addgRst.user_id(), addgRst.group_id(), "normal");
+    LOG_ERROR << "cretor id:" << creator;
+    if(0 == creator){
+        //群组不存在
     }
-    std::string addgmsgbody;
-    addgRsp.SerializeToString(&addgmsgbody);
-    cmsg.set_message_body(addgmsgbody);
     std::string addgmsg;
     cmsg.SerializeToString(&addgmsg);
     uint32_t length = addgmsg.size();
+    {
+        lock_guard<mutex> lock(_connMutex);
+        auto it = _userConnMap.find(creator);
+        if (_userConnMap.end() != it){
+            // toid在线,在本服务器,转发消息 服务器主动推送消息给toId用户
             std::cout << "send length: " << length << std::endl;
-            std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
-            conn->send((char*)&length, sizeof(uint32_t));
-            conn->send(addgmsg);     
-    // conn->send("add Group successfully!");
+            it->second->send((char*)&length, sizeof(uint32_t));
+            it->second->send(addgmsg);
+            return;
+        }
+    }
+
+    //查询toid是否在线,是否在其他服务器
+    if (_userModel.cacheQuery(creator) == "online" || _userModel.query(creator).getState() == "online"){
+        _redis.publish(creator, addgmsg);
+        return;
+    }
+
+    // toid不在现,存储离线消息
+    _offlineMsgModel.insert(creator, addgmsg);  
 }
+
 void ChatService::addGroupResponse(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time)
 {
+    chat_proto::AddGroupResponse addgRsp;
+    std::string msg = cmsg.message_body();
+    Encryption::doDecryption(msg, cmsg.length(), nullptr);
+    if (!addgRsp.ParseFromString(msg)){
+        LOG_ERROR << "parse error in addgroup response service";
+    }
+    uint32_t userid = addgRsp.user_id();
+    LOG_ERROR << "userid: " << userid << " groupid:" << addgRsp.group_id();
+    if (addgRsp.pass()){
+        _groupModel.addGroup(userid, addgRsp.group_id(), "normal");
+    }
+    std::string agmsg;
+    cmsg.SerializeToString(&agmsg);
+    uint32_t length = agmsg.size();
+    {
+        lock_guard<mutex> lock(_connMutex);
+        auto it = _userConnMap.find(userid);
+        if (_userConnMap.end() != it){
+            // toid在线,在本服务器,转发消息 服务器主动推送消息给toId用户
+            std::cout << "send length: " << length << std::endl;
+            it->second->send((char*)&length, sizeof(uint32_t));
+            it->second->send(agmsg);
+            return;
+        }
+    }
+
+    //查询toid是否在线,是否在其他服务器
+    if (_userModel.cacheQuery(userid) == "online" || _userModel.query(userid).getState() == "online"){
+        _redis.publish(userid, agmsg);
+        return;
+    }
+
+    // toid不在现,存储离线消息
+    _offlineMsgModel.insert(userid, agmsg);
 }
 
 //群组聊天业务
 void ChatService::groupChat(const TcpConnectionPtr &conn, chat_proto::ChatMessage &cmsg, Timestamp time)
 {
     chat_proto::GroupChatRequest gcRst;
-    if (!gcRst.ParseFromString(cmsg.message_body())){
+    std::string msg = cmsg.message_body();
+    Encryption::doDecryption(msg, cmsg.length(), nullptr);
+    if (!gcRst.ParseFromString(msg)){
         LOG_ERROR << "parse error in groupchat request service";
     }
-    // int userid = js["id"].get<int>();
-    // int groupid = js["groupid"].get<int>();
 
     vector<uint32_t> useridVec = _groupModel.queryGroupUsers(gcRst.user_id(), gcRst.group_id());
     std::string gcmsg;
     cmsg.SerializeToString(&gcmsg);
+    uint32_t length = gcmsg.size();
+
     lock_guard<mutex> lock(_connMutex);
     for (const int &id : useridVec){
         auto it = _userConnMap.find(id);
         if (it != _userConnMap.end()){
             //转发群消息
-            uint32_t length = gcmsg.size();
-            std::cout << "send length: " << length << std::endl;
+            std::cout << "in group chat send length: " << length << std::endl;
             std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
             it->second->send((char*)&length, sizeof(uint32_t));
             it->second->send(gcmsg); 
-            // it->second->send(gcmsg);
         }
         else{
             //查询toid是否在线
@@ -561,8 +575,10 @@ void ChatService::handleRedisSubscribeMessage(int userid, string msg)
 {
     lock_guard<std::mutex> lock(_connMutex);
     auto it = _userConnMap.find(userid);
+    uint32_t length = msg.size();
+    length = (0 == length % AES_BLOCK_SIZE) ? length : ((length/AES_BLOCK_SIZE)+1)*AES_BLOCK_SIZE;
+    Encryption::doEncryption(msg, length, nullptr);
     if (it != _userConnMap.end()){
-            uint32_t length = msg.size();
             std::cout << "send length: " << length << std::endl;
             std::cout << "sizeof " << sizeof((char*)&length)  << sizeof(uint32_t)<< std::endl;
             it->second->send((char*)&length, sizeof(uint32_t));

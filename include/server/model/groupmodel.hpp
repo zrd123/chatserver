@@ -8,8 +8,10 @@
 class GroupModel
 {
 public:
+    //获取群组创建者id
+    uint32_t creator(uint32_t id);
     //创建群组
-    bool createGroup(chat_proto::Group &group);
+    bool createGroup(chat_proto::Group &group, uint32_t creator);
     //加入群组
     void addGroup(uint32_t userid, uint32_t groupid, std::string role);
     //查询用户所在群组信息

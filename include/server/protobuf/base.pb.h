@@ -46,6 +46,9 @@ struct TableStruct_base_2eproto {
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_base_2eproto;
 namespace chat_proto {
+class Encryption;
+struct EncryptionDefaultTypeInternal;
+extern EncryptionDefaultTypeInternal _Encryption_default_instance_;
 class Group;
 struct GroupDefaultTypeInternal;
 extern GroupDefaultTypeInternal _Group_default_instance_;
@@ -60,6 +63,7 @@ struct UserDefaultTypeInternal;
 extern UserDefaultTypeInternal _User_default_instance_;
 }  // namespace chat_proto
 PROTOBUF_NAMESPACE_OPEN
+template<> ::chat_proto::Encryption* Arena::CreateMaybeMessage<::chat_proto::Encryption>(Arena*);
 template<> ::chat_proto::Group* Arena::CreateMaybeMessage<::chat_proto::Group>(Arena*);
 template<> ::chat_proto::GroupMember* Arena::CreateMaybeMessage<::chat_proto::GroupMember>(Arena*);
 template<> ::chat_proto::LoadResponse* Arena::CreateMaybeMessage<::chat_proto::LoadResponse>(Arena*);
@@ -67,6 +71,31 @@ template<> ::chat_proto::User* Arena::CreateMaybeMessage<::chat_proto::User>(Are
 PROTOBUF_NAMESPACE_CLOSE
 namespace chat_proto {
 
+enum Encryption_EncryType : int {
+  Encryption_EncryType_MRSA = 0,
+  Encryption_EncryType_MAES = 1,
+  Encryption_EncryType_Encryption_EncryType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  Encryption_EncryType_Encryption_EncryType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool Encryption_EncryType_IsValid(int value);
+constexpr Encryption_EncryType Encryption_EncryType_EncryType_MIN = Encryption_EncryType_MRSA;
+constexpr Encryption_EncryType Encryption_EncryType_EncryType_MAX = Encryption_EncryType_MAES;
+constexpr int Encryption_EncryType_EncryType_ARRAYSIZE = Encryption_EncryType_EncryType_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Encryption_EncryType_descriptor();
+template<typename T>
+inline const std::string& Encryption_EncryType_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, Encryption_EncryType>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function Encryption_EncryType_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    Encryption_EncryType_descriptor(), enum_t_value);
+}
+inline bool Encryption_EncryType_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, Encryption_EncryType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<Encryption_EncryType>(
+    Encryption_EncryType_descriptor(), name, value);
+}
 enum Error : int {
   NO_ERR = 0,
   REG_ERR_1 = 1,
@@ -130,9 +159,9 @@ enum MessageType : int {
   LOAD_MAS = 1,
   LOAD_ACK = 2,
   LOGIN_MSG = 3,
-  LOGIN_MSG_ACK = 4,
+  LOGIN_ACK = 4,
   REG_MSG = 5,
-  REG_MSG_ACK = 6,
+  REG_ACK = 6,
   ONE_CHAT_MSG = 7,
   ADD_FRIEND_MSG = 8,
   ADD_FRIEND_ACK = 9,
@@ -165,6 +194,195 @@ inline bool MessageType_Parse(
     MessageType_descriptor(), name, value);
 }
 // ===================================================================
+
+class Encryption final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:chat_proto.Encryption) */ {
+ public:
+  inline Encryption() : Encryption(nullptr) {}
+  ~Encryption() override;
+  explicit PROTOBUF_CONSTEXPR Encryption(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Encryption(const Encryption& from);
+  Encryption(Encryption&& from) noexcept
+    : Encryption() {
+    *this = ::std::move(from);
+  }
+
+  inline Encryption& operator=(const Encryption& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Encryption& operator=(Encryption&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Encryption& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Encryption* internal_default_instance() {
+    return reinterpret_cast<const Encryption*>(
+               &_Encryption_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    0;
+
+  friend void swap(Encryption& a, Encryption& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Encryption* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Encryption* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Encryption* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Encryption>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Encryption& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom(const Encryption& from);
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to, const ::PROTOBUF_NAMESPACE_ID::Message& from);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Encryption* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "chat_proto.Encryption";
+  }
+  protected:
+  explicit Encryption(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  typedef Encryption_EncryType EncryType;
+  static constexpr EncryType MRSA =
+    Encryption_EncryType_MRSA;
+  static constexpr EncryType MAES =
+    Encryption_EncryType_MAES;
+  static inline bool EncryType_IsValid(int value) {
+    return Encryption_EncryType_IsValid(value);
+  }
+  static constexpr EncryType EncryType_MIN =
+    Encryption_EncryType_EncryType_MIN;
+  static constexpr EncryType EncryType_MAX =
+    Encryption_EncryType_EncryType_MAX;
+  static constexpr int EncryType_ARRAYSIZE =
+    Encryption_EncryType_EncryType_ARRAYSIZE;
+  static inline const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor*
+  EncryType_descriptor() {
+    return Encryption_EncryType_descriptor();
+  }
+  template<typename T>
+  static inline const std::string& EncryType_Name(T enum_t_value) {
+    static_assert(::std::is_same<T, EncryType>::value ||
+      ::std::is_integral<T>::value,
+      "Incorrect type passed to function EncryType_Name.");
+    return Encryption_EncryType_Name(enum_t_value);
+  }
+  static inline bool EncryType_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
+      EncryType* value) {
+    return Encryption_EncryType_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kCodeFieldNumber = 2,
+    kTypeFieldNumber = 1,
+  };
+  // bytes code = 2;
+  void clear_code();
+  const std::string& code() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_code(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_code();
+  PROTOBUF_NODISCARD std::string* release_code();
+  void set_allocated_code(std::string* code);
+  private:
+  const std::string& _internal_code() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_code(const std::string& value);
+  std::string* _internal_mutable_code();
+  public:
+
+  // .chat_proto.Encryption.EncryType type = 1;
+  void clear_type();
+  ::chat_proto::Encryption_EncryType type() const;
+  void set_type(::chat_proto::Encryption_EncryType value);
+  private:
+  ::chat_proto::Encryption_EncryType _internal_type() const;
+  void _internal_set_type(::chat_proto::Encryption_EncryType value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:chat_proto.Encryption)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr code_;
+  int type_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_base_2eproto;
+};
+// -------------------------------------------------------------------
 
 class User final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:chat_proto.User) */ {
@@ -214,7 +432,7 @@ class User final :
                &_User_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    1;
 
   friend void swap(User& a, User& b) {
     a.Swap(&b);
@@ -389,7 +607,7 @@ class GroupMember final :
                &_GroupMember_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    2;
 
   friend void swap(GroupMember& a, GroupMember& b) {
     a.Swap(&b);
@@ -562,7 +780,7 @@ class Group final :
                &_Group_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    3;
 
   friend void swap(Group& a, Group& b) {
     a.Swap(&b);
@@ -633,12 +851,13 @@ class Group final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kMembersFieldNumber = 4,
+    kMembersFieldNumber = 5,
     kNameFieldNumber = 2,
     kDescriptionFieldNumber = 3,
     kIdFieldNumber = 1,
+    kCreatorFieldNumber = 4,
   };
-  // repeated .chat_proto.GroupMember members = 4;
+  // repeated .chat_proto.GroupMember members = 5;
   int members_size() const;
   private:
   int _internal_members_size() const;
@@ -693,6 +912,15 @@ class Group final :
   void _internal_set_id(uint32_t value);
   public:
 
+  // uint32 creator = 4;
+  void clear_creator();
+  uint32_t creator() const;
+  void set_creator(uint32_t value);
+  private:
+  uint32_t _internal_creator() const;
+  void _internal_set_creator(uint32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:chat_proto.Group)
  private:
   class _Internal;
@@ -704,6 +932,7 @@ class Group final :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr name_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr description_;
   uint32_t id_;
+  uint32_t creator_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_base_2eproto;
 };
@@ -757,7 +986,7 @@ class LoadResponse final :
                &_LoadResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    4;
 
   friend void swap(LoadResponse& a, LoadResponse& b) {
     a.Swap(&b);
@@ -888,6 +1117,80 @@ class LoadResponse final :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// Encryption
+
+// .chat_proto.Encryption.EncryType type = 1;
+inline void Encryption::clear_type() {
+  type_ = 0;
+}
+inline ::chat_proto::Encryption_EncryType Encryption::_internal_type() const {
+  return static_cast< ::chat_proto::Encryption_EncryType >(type_);
+}
+inline ::chat_proto::Encryption_EncryType Encryption::type() const {
+  // @@protoc_insertion_point(field_get:chat_proto.Encryption.type)
+  return _internal_type();
+}
+inline void Encryption::_internal_set_type(::chat_proto::Encryption_EncryType value) {
+  
+  type_ = value;
+}
+inline void Encryption::set_type(::chat_proto::Encryption_EncryType value) {
+  _internal_set_type(value);
+  // @@protoc_insertion_point(field_set:chat_proto.Encryption.type)
+}
+
+// bytes code = 2;
+inline void Encryption::clear_code() {
+  code_.ClearToEmpty();
+}
+inline const std::string& Encryption::code() const {
+  // @@protoc_insertion_point(field_get:chat_proto.Encryption.code)
+  return _internal_code();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Encryption::set_code(ArgT0&& arg0, ArgT... args) {
+ 
+ code_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:chat_proto.Encryption.code)
+}
+inline std::string* Encryption::mutable_code() {
+  std::string* _s = _internal_mutable_code();
+  // @@protoc_insertion_point(field_mutable:chat_proto.Encryption.code)
+  return _s;
+}
+inline const std::string& Encryption::_internal_code() const {
+  return code_.Get();
+}
+inline void Encryption::_internal_set_code(const std::string& value) {
+  
+  code_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Encryption::_internal_mutable_code() {
+  
+  return code_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Encryption::release_code() {
+  // @@protoc_insertion_point(field_release:chat_proto.Encryption.code)
+  return code_.Release();
+}
+inline void Encryption::set_allocated_code(std::string* code) {
+  if (code != nullptr) {
+    
+  } else {
+    
+  }
+  code_.SetAllocated(code, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (code_.IsDefault()) {
+    code_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:chat_proto.Encryption.code)
+}
+
+// -------------------------------------------------------------------
+
 // User
 
 // uint32 id = 1;
@@ -1296,7 +1599,27 @@ inline void Group::set_allocated_description(std::string* description) {
   // @@protoc_insertion_point(field_set_allocated:chat_proto.Group.description)
 }
 
-// repeated .chat_proto.GroupMember members = 4;
+// uint32 creator = 4;
+inline void Group::clear_creator() {
+  creator_ = 0u;
+}
+inline uint32_t Group::_internal_creator() const {
+  return creator_;
+}
+inline uint32_t Group::creator() const {
+  // @@protoc_insertion_point(field_get:chat_proto.Group.creator)
+  return _internal_creator();
+}
+inline void Group::_internal_set_creator(uint32_t value) {
+  
+  creator_ = value;
+}
+inline void Group::set_creator(uint32_t value) {
+  _internal_set_creator(value);
+  // @@protoc_insertion_point(field_set:chat_proto.Group.creator)
+}
+
+// repeated .chat_proto.GroupMember members = 5;
 inline int Group::_internal_members_size() const {
   return members_.size();
 }
@@ -1429,6 +1752,8 @@ LoadResponse::group_list() const {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -1436,6 +1761,11 @@ LoadResponse::group_list() const {
 
 PROTOBUF_NAMESPACE_OPEN
 
+template <> struct is_proto_enum< ::chat_proto::Encryption_EncryType> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::chat_proto::Encryption_EncryType>() {
+  return ::chat_proto::Encryption_EncryType_descriptor();
+}
 template <> struct is_proto_enum< ::chat_proto::Error> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::chat_proto::Error>() {

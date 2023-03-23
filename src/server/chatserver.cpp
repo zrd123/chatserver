@@ -1,10 +1,11 @@
 #include "chatserver.hpp"
 #include "chatservice.hpp"
-#include "json.hpp"
 #include <functional>
 #include <string>
 #include <muduo/base/Logging.h>
+#include <openssl/aes.h>
 #include "others.pb.h"
+#include "encryption.hpp"
 
 using namespace std;
 using namespace placeholders;
@@ -45,18 +46,20 @@ void ChatServer::onMessage(const TcpConnectionPtr &conn, Buffer *buffer, Timesta
 {
     // string buf(buffer->retrieveAllAsString());
     string length(buffer->retrieveAsString(sizeof(uint32_t)));
-    string buf(buffer->retrieveAsString(*(uint32_t*)length.c_str()));
-    std::cout << "receive length: " << *(uint32_t*)length.c_str() << std::endl;
+    // buffer->peekInt32();
+    uint32_t len = *(uint32_t*)length.c_str();
+    // string rdmIv(buffer->retrieveAsString(AES_BLOCK_SIZE));
+    std::cout << "receive length: " << len << "readable bytes:" << buffer->readableBytes() << std::endl;
+    string buf(buffer->retrieveAsString(len));
     //数据反序列化
     chat_proto::ChatMessage cmsg;
     if(!cmsg.ParseFromString(buf)){
+        LOG_ERROR << buf.size() << (unsigned char *)(cmsg.message_body().c_str());
         LOG_ERROR << "parse error in ChatMessage";
     }
-    // json js = json::parse(buf);
 
     //达到的目的: 完全节藕网络模块的代码和业务模块的代码
     //通过js["msgid"]获取->业务handler->conn js time
-    //auto  msgHandler = ChatService::instance()->getHandler(js["msgid"].get<int>());
     auto msgHandler = ChatService::instance()->getHandler(cmsg.type());
     //或调消息绑定好的事件处理器,来执行相应的业务处理
     msgHandler(conn, cmsg, time);

@@ -25,9 +25,9 @@ enum MessageType{
 	LOAD_MAS = 1;			//加载信息请求	
 	LOAD_ACK = 2;			//加载信息响应
 	LOGIN_MSG = 3;			//登陆消息
-    LOGIN_MSG_ACK = 4;  	//登陆响应消息
+    LOGIN_ACK = 4;  	//登陆响应消息
     REG_MSG = 5;       		//注册消息
-    REG_MSG_ACK = 6;    	//注册响应消息
+    REG_ACK = 6;    	//注册响应消息
     ONE_CHAT_MSG = 7;   	//聊天消息
     ADD_FRIEND_MSG = 8;		//添加好友消息
 	ADD_FRIEND_ACK = 9;		//添加好友响应消息
@@ -38,6 +38,15 @@ enum MessageType{
     GROUP_CHAT_MSG = 14;	//群聊天消息
     LOGINOUT_MSG = 15;		//注销消息
 
+}
+
+message Encryption{
+	enum EncryType{
+		MRSA = 0;
+		MAES = 1;
+	}
+	EncryType type = 1;
+	bytes code = 2;
 }
 
 message User{
@@ -54,7 +63,8 @@ message Group{
 	uint32 id = 1;
 	bytes name = 2;
 	bytes description = 3;
-	repeated GroupMember members = 4;
+	uint32 creator = 4;
+	repeated GroupMember members = 5;
 }
 
 message LoadResponse{
